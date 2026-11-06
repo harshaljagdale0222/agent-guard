@@ -147,7 +147,7 @@ Engineered for zero-friction reproducibility by automated evaluators (**Claude C
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/harshal0296/agent-guard.git
+git clone https://github.com/harshaljagdale0222/agent-guard.git
 cd agent-guard
 npm install
 ```
@@ -238,7 +238,7 @@ npm run build
 ## 👤 Team & Hackathon Coordinates
 
 - **Project Name:** AgentGuard
-- **Lead Developer:** Harshal (`harshal0296`)
+- **Lead Developer:** Harshal ([@harshaljagdale0222](https://github.com/harshaljagdale0222))
 - **Official NEAR Mainnet Payout Account:** `harshal0222.near`
 - **Official NEAR Testnet Verification Account:** `harshal0296.testnet`
 - **Submission Target:** NEAR HACKATHON 2026 (Submitting to `security`, `business`, `agents`, `realworld` tracks)
