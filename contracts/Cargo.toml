@@ -1,0 +1,21 @@
+[package]
+name = "agent-guard-contract"
+version = "0.1.0"
+edition = "2021"
+description = "NEAR Rust Smart Contract for On-Chain Policy Enforcement and Sandboxed AI Agent Execution"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = { version = "5.1.0", default-features = false, features = ["legacy", "unit-testing"] }
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
+

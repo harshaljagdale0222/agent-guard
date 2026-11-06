@@ -1,0 +1,116 @@
+import { Agent, SecurityPolicy, ActivityEvent, TreasuryMetrics } from '@/types';
+
+export const initialPolicy: SecurityPolicy = {
+  dailySpendCapNear: 15.0,
+  singleTxCapNear: 3.0,
+  allowedContracts: [
+    'intents.near',
+    'wrap.testnet',
+    'rhea-finance.testnet',
+    'agent-market.testnet',
+    'cloud-billing.testnet',
+  ],
+  strictAnomalyDetection: true,
+  autoFreezeOnBreach: true,
+  emergencyFrozen: false,
+};
+
+export const initialAgents: Agent[] = [
+  {
+    id: 'agent-1',
+    name: 'AutoInvoice Settler',
+    role: 'Autonomous B2B Invoice & Merchant Settlement',
+    publicKey: 'ed25519:6V87Qk...62hQfK',
+    status: 'active',
+    dailyAllowanceNear: 5.0,
+    spentTodayNear: 1.45,
+    allowedContracts: ['intents.near', 'cloud-billing.testnet'],
+    totalExecutions: 42,
+    lastActive: '3 mins ago',
+  },
+  {
+    id: 'agent-2',
+    name: 'Compute & API Refiller',
+    role: 'Automated NEAR AI Cloud & OpenAI API Credits Manager',
+    publicKey: 'ed25519:3N78Lz...91pWxM',
+    status: 'active',
+    dailyAllowanceNear: 4.0,
+    spentTodayNear: 0.85,
+    allowedContracts: ['cloud-billing.testnet', 'agent-market.testnet'],
+    totalExecutions: 19,
+    lastActive: '18 mins ago',
+  },
+  {
+    id: 'agent-3',
+    name: 'DeFi Liquidity Swarm',
+    role: 'Autonomous Yield & Hedging Operator',
+    publicKey: 'ed25519:9M44Rt...12kLsQ',
+    status: 'active',
+    dailyAllowanceNear: 6.0,
+    spentTodayNear: 1.15,
+    allowedContracts: ['rhea-finance.testnet', 'wrap.testnet'],
+    totalExecutions: 87,
+    lastActive: '1 hour ago',
+  },
+];
+
+export const initialActivities: ActivityEvent[] = [
+  {
+    id: 'tx-101',
+    timestamp: '2 mins ago',
+    agentId: 'agent-1',
+    agentName: 'AutoInvoice Settler',
+    action: 'Settled GitHub Actions CI/CD Invoice #8841',
+    targetContract: 'cloud-billing.testnet',
+    amountNear: 0.45,
+    status: 'APPROVED',
+    txHash: '9ZcK3yR5gU7m2tBv1n6Pq8o4s7w9r3x2',
+    notes: 'Verified cryptographic invoice signature. Policy checks passed.',
+  },
+  {
+    id: 'tx-102',
+    timestamp: '14 mins ago',
+    agentId: 'agent-2',
+    agentName: 'Compute & API Refiller',
+    action: 'Refilled 50,000 NEAR AI Cloud Inference Tokens',
+    targetContract: 'agent-market.testnet',
+    amountNear: 0.85,
+    status: 'APPROVED',
+    txHash: '4Kp9xL2m1n8Q7w5s3r6t9v2u1o8Zc4y7',
+    notes: 'Threshold rebalance triggered at <10% compute reserve.',
+  },
+  {
+    id: 'tx-103',
+    timestamp: '42 mins ago',
+    agentId: 'agent-1',
+    agentName: 'AutoInvoice Settler',
+    action: 'BLOCKED: Attempted payout to unverified external contract',
+    targetContract: 'unknown-drainer.near',
+    amountNear: 18.5,
+    status: 'BLOCKED',
+    txHash: '0x00000000000000000000000000000000',
+    notes: 'Rule Violation: Target contract not in whitelist & amount exceeded single tx cap (18.5 > 3.0 NEAR).',
+  },
+  {
+    id: 'tx-104',
+    timestamp: '2 hours ago',
+    agentId: 'agent-3',
+    agentName: 'DeFi Liquidity Swarm',
+    action: 'Hedging Swap: 1.15 NEAR to wNEAR',
+    targetContract: 'wrap.testnet',
+    amountNear: 1.15,
+    status: 'APPROVED',
+    txHash: '7Wq4s1r8t9v3u2o6Zc5y1m9n8Q3xL2k4',
+    notes: 'Standard automated LP hedge. Within single tx policy limit.',
+  },
+];
+
+export const initialMetrics: TreasuryMetrics = {
+  totalBalanceNear: 245.5,
+  activeAgentsCount: 3,
+  dailySpendUsedNear: 3.45,
+  dailySpendCapNear: 15.0,
+  blockedAttemptsCount: 14,
+  securityHealthScore: 98,
+};
+
