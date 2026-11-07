@@ -3,6 +3,7 @@
 > **The First Policy-Guarded Autonomous Treasury & Execution Rail for AI Agents on NEAR Protocol**
 
 [![NEAR Protocol](https://img.shields.io/badge/NEAR-Testnet%20Live-00EC97?logo=near&logoColor=black&style=for-the-badge)](https://testnet.nearblocks.io)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-agent--guard--coral.vercel.app-black?logo=vercel&style=for-the-badge)](https://agent-guard-coral.vercel.app)
 [![Smart Contract](https://img.shields.io/badge/Rust-near--sdk%20v5.1.0-DEA584?logo=rust&style=for-the-badge)](https://github.com/near/near-sdk-rs)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20100%25-3178C6?logo=typescript&style=for-the-badge)](https://www.typescriptlang.org/)
 [![Tests](https://img.shields.io/badge/Tests-7%2F7%20Passing-success?style=for-the-badge)](https://nodejs.org/)
@@ -171,6 +172,8 @@ npm test
 ```
 
 ### 3. Launch the Application
+- **Live Production URL:** [https://agent-guard-coral.vercel.app](https://agent-guard-coral.vercel.app)
+- **Or Run Locally:**
 ```bash
 npm run dev
 ```
