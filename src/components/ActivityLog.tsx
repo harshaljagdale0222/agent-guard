@@ -116,16 +116,18 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ activities }) => {
                 <td className="py-3 px-3 text-right whitespace-nowrap">
                   {item.status === 'APPROVED' ? (
                     <a
-                      href={`https://testnet.nearblocks.io/txns/${item.txHash}`}
+                      href={`https://testnet.nearblocks.io/address/${item.targetContract}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1 text-emerald-400 hover:text-emerald-300 hover:underline"
+                      className="inline-flex items-center space-x-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 transition-all"
+                      title="Inspect target contract on NearBlocks Explorer"
                     >
-                      <span className="text-[11px]">{item.txHash.substring(0, 8)}...</span>
-                      <ExternalLink className="h-3 w-3" />
+                      <span className="text-[10px] font-mono font-semibold">NearBlocks ↗</span>
                     </a>
                   ) : (
-                    <span className="text-zinc-600 text-[11px]">No Broadcast</span>
+                    <span className="inline-flex items-center space-x-1 rounded-md bg-rose-500/10 border border-rose-500/20 px-2 py-1 text-rose-400 text-[10px] font-mono">
+                      <span>Blocked Locally</span>
+                    </span>
                   )}
                 </td>
               </tr>
