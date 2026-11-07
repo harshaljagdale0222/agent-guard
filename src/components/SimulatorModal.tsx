@@ -34,9 +34,9 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
   const runLegitScenario = () => {
     setActiveScenario('LEGIT');
     setLogs([
-      '⚡ [Agent: AutoInvoice Settler] Received webhook: GitHub Actions Cloud Invoice #8920 ($3.80)',
+      '⚡ [Agent: AutoInvoice Settler] Received webhook: Infrastructure Compute Invoice #8920 ($3.80)',
       '🔍 Querying AgentGuard Policy Engine...',
-      '✓ Policy Check 1: Target "cloud-billing.testnet" is whitelisted: PASS.',
+      '✓ Policy Check 1: Target "wrap.testnet" is whitelisted: PASS.',
       `✓ Policy Check 2: Amount (0.75 NEAR) is under Single Tx Cap (${policy.singleTxCapNear} NEAR).`,
       `✓ Policy Check 3: Daily spend will remain within 24h cap (${policy.dailySpendCapNear} NEAR).`,
       '☄️ Requesting transaction signature authorization from NEAR Wallet...',
@@ -44,11 +44,11 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
 
     // Open Wallet Confirm Modal
     setPendingSimRequest({
-      receiverId: 'cloud-billing.testnet',
-      methodName: 'pay_invoice',
+      receiverId: 'wrap.testnet',
+      methodName: 'ft_transfer_call',
       amountNear: 0.75,
       gasNear: 0.00045,
-      description: 'GitHub Actions Cloud Compute Settlement',
+      description: 'Infrastructure Liquidity Compute Settlement',
       isViolation: false,
     });
     setIsWalletModalOpen(true);
@@ -72,8 +72,8 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
           timestamp: 'Just now',
           agentId: 'agent-1',
           agentName: 'AutoInvoice Settler',
-          action: 'Settled GitHub Actions Cloud Invoice #8920',
-          targetContract: 'cloud-billing.testnet',
+          action: 'Settled Infrastructure Compute Settlement',
+          targetContract: 'wrap.testnet',
           amountNear: 0.75,
           status: 'APPROVED',
           txHash: randomTx,
@@ -173,7 +173,7 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
               <span className="text-xs font-bold text-emerald-400">Scenario 1: Legitimate SaaS Payment</span>
             </div>
             <p className="mt-1 text-xs text-zinc-400">
-              Agent settles 0.75 NEAR to whitelisted contract &apos;cloud-billing.testnet&apos;.
+              Agent settles 0.75 NEAR to whitelisted contract &apos;wrap.testnet&apos;.
             </p>
             <span className="mt-3 text-[10px] font-mono text-emerald-400/80">
               Triggers NEAR Wallet Sign Request &rarr;

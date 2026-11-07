@@ -4,7 +4,7 @@ import { evaluatePolicy, generateAgentKeyPair } from '../lib/near.ts';
 import { formatYoctoToNear, getRpcUrl, MAINNET_RPC, TESTNET_RPC } from '../lib/near-rpc.ts';
 
 describe('AgentGuard Cryptographic Policy Engine', () => {
-  const allowedContracts = ['intents.near', 'cloud-billing.testnet', 'rhea.testnet'];
+  const allowedContracts = ['intents.near', 'wrap.testnet', 'guest-book.testnet', 'cloud-billing.testnet', 'rhea.testnet'];
   const singleTxCap = 3.0;
   const dailySpendCap = 15.0;
   const currentDailySpend = 2.0;
