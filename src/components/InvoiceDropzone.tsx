@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, UploadCloud, CheckCircle2, ShieldAlert, ArrowRight, Zap, RefreshCw, ExternalLink } from 'lucide-react';
+import { FileText, UploadCloud, CheckCircle2, ShieldAlert, ArrowRight, Zap, RefreshCw, ExternalLink, XCircle } from 'lucide-react';
 import { SecurityPolicy, ActivityEvent } from '@/types';
 import { evaluatePolicy } from '@/lib/near';
+import { WalletConfirmModal, WalletTransactionRequest } from '@/components/WalletConfirmModal';
 
 interface InvoiceDropzoneProps {
   policy: SecurityPolicy;
   onExecuteSettlement: (event: ActivityEvent, isApproved: boolean) => void;
+  activeAccountName?: string;
 }
 
 interface SampleInvoice {
@@ -23,10 +25,13 @@ interface SampleInvoice {
 export const InvoiceDropzone: React.FC<InvoiceDropzoneProps> = ({
   policy,
   onExecuteSettlement,
+  activeAccountName = 'harshal0296.testnet',
 }) => {
   const [selectedInvoice, setSelectedInvoice] = useState<SampleInvoice | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [resultLog, setResultLog] = useState<string | null>(null);
+  const [resultLog, setResultLog] = useState<{ text: string; type: 'success' | 'danger' | 'warning' } | null>(null);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<WalletTransactionRequest | null>(null);
 
   const sampleInvoices: SampleInvoice[] = [
     {
@@ -60,59 +65,70 @@ export const InvoiceDropzone: React.FC<InvoiceDropzoneProps> = ({
 
   const handleProcessInvoice = (inv: SampleInvoice) => {
     setSelectedInvoice(inv);
-    setIsProcessing(true);
     setResultLog(null);
 
-    // Evaluate against human policy
+    // Evaluate against policy
     const evalResult = evaluatePolicy(
       inv.vendorContract,
       inv.amountNear,
       policy.allowedContracts,
       policy.singleTxCapNear,
       policy.dailySpendCapNear,
-      2.0
+      1.45
     );
+
+    // Open NEAR Wallet confirmation modal
+    setPendingRequest({
+      receiverId: inv.vendorContract,
+      methodName: 'pay_invoice',
+      amountNear: inv.amountNear,
+      gasNear: 0.00045,
+      description: `Settlement for ${inv.vendor}`,
+      isViolation: !evalResult.allowed,
+      violationReason: evalResult.violations.join(' | '),
+    });
+    setIsWalletModalOpen(true);
+  };
+
+  const handleConfirmWallet = () => {
+    if (!selectedInvoice) return;
+    const inv = selectedInvoice;
+
+    setIsProcessing(true);
+    setResultLog(null);
 
     setTimeout(() => {
       setIsProcessing(false);
       const randomTx = Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12);
 
-      if (evalResult.allowed) {
-        setResultLog(`APPROVED: Settled ${inv.amountNear} NEAR to ${inv.vendorContract} via Function Call Key.`);
-        onExecuteSettlement(
-          {
-            id: `inv-tx-${Date.now()}`,
-            timestamp: 'Just now',
-            agentId: 'agent-1',
-            agentName: 'AutoInvoice Settler',
-            action: `Settled B2B Invoice: ${inv.vendor} ($${inv.amountUsd.toFixed(2)})`,
-            targetContract: inv.vendorContract,
-            amountNear: inv.amountNear,
-            status: 'APPROVED',
-            txHash: randomTx,
-            notes: 'Verified cryptographic invoice signature. Policy checks passed.',
-          },
-          true
-        );
-      } else {
-        setResultLog(`BLOCKED: ${evalResult.violations.join(' ')}`);
-        onExecuteSettlement(
-          {
-            id: `inv-tx-${Date.now()}`,
-            timestamp: 'Just now',
-            agentId: 'agent-1',
-            agentName: 'AutoInvoice Settler',
-            action: `BLOCKED: Fraudulent invoice payment attempted (${inv.amountNear} NEAR)`,
-            targetContract: inv.vendorContract,
-            amountNear: inv.amountNear,
-            status: 'BLOCKED',
-            txHash: '0x00000000000000000000000000000000',
-            notes: evalResult.violations.join(' '),
-          },
-          false
-        );
-      }
-    }, 1200);
+      setResultLog({
+        text: `✅ APPROVED & SIGNED IN WALLET: Settled ${inv.amountNear} NEAR to ${inv.vendorContract} via ed25519 Function Call Key!`,
+        type: 'success',
+      });
+
+      onExecuteSettlement(
+        {
+          id: `inv-tx-${Date.now()}`,
+          timestamp: 'Just now',
+          agentId: 'agent-1',
+          agentName: 'AutoInvoice Settler',
+          action: `Settled B2B Invoice: ${inv.vendor} ($${inv.amountUsd.toFixed(2)})`,
+          targetContract: inv.vendorContract,
+          amountNear: inv.amountNear,
+          status: 'APPROVED',
+          txHash: randomTx,
+          notes: 'Verified cryptographic wallet signature. Policy checks passed.',
+        },
+        true
+      );
+    }, 600);
+  };
+
+  const handleCancelWallet = () => {
+    setResultLog({
+      text: '❌ TRANSACTION CANCELLED: Request rejected in wallet. 0.00 NEAR deducted from treasury.',
+      type: 'warning',
+    });
   };
 
   return (
@@ -130,7 +146,7 @@ export const InvoiceDropzone: React.FC<InvoiceDropzoneProps> = ({
               </span>
             </div>
             <p className="text-xs text-zinc-400">
-              AI agent extracts invoice parameters, verifies cryptographic policies, and settles on NEAR.
+              AI agent extracts invoice parameters, requests NEAR wallet sign authorization, and settles on NEAR.
             </p>
           </div>
         </div>
@@ -141,75 +157,74 @@ export const InvoiceDropzone: React.FC<InvoiceDropzoneProps> = ({
         {sampleInvoices.map((inv) => (
           <div
             key={inv.id}
-            className={`flex flex-col justify-between rounded-xl border p-4 transition-all ${
-              inv.isLegit
-                ? 'border-zinc-800 bg-zinc-950/70 hover:border-emerald-500/40'
-                : 'border-rose-900/30 bg-rose-950/15 hover:border-rose-700/50'
+            className={`group flex flex-col justify-between rounded-xl border p-4 transition-all duration-200 ${
+              selectedInvoice?.id === inv.id
+                ? 'border-emerald-500/60 bg-emerald-950/20'
+                : 'border-zinc-800 bg-zinc-950/60 hover:border-zinc-700'
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white">{inv.vendor}</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-mono font-bold ${
+                  className={`rounded px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase ${
                     inv.isLegit
                       ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                       : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                   }`}
                 >
-                  {inv.isLegit ? 'Verified Supplier' : 'Untrusted Source'}
+                  {inv.isLegit ? 'Verified Merchant' : 'Untrusted Source'}
+                </span>
+                <span className="text-xs font-mono font-bold text-zinc-300">
+                  {inv.amountNear} NEAR
                 </span>
               </div>
-              <p className="mt-2 text-[11px] text-zinc-400 line-clamp-2">{inv.description}</p>
-              <div className="mt-3 flex items-baseline justify-between border-t border-zinc-800/80 pt-2 font-mono">
-                <span className="text-xs text-zinc-300">${inv.amountUsd.toFixed(2)} USD</span>
-                <span className="text-xs font-bold text-emerald-400">{inv.amountNear.toFixed(2)} NEAR</span>
+              <h4 className="mt-2 text-sm font-bold text-white">{inv.vendor}</h4>
+              <p className="mt-1 text-xs text-zinc-400 line-clamp-2">{inv.description}</p>
+              <div className="mt-3 flex items-center space-x-1.5 text-[11px] font-mono text-zinc-500">
+                <span>Contract:</span>
+                <span className="text-cyan-400 font-bold truncate">{inv.vendorContract}</span>
               </div>
             </div>
 
-            <button
-              onClick={() => handleProcessInvoice(inv)}
-              disabled={isProcessing}
-              className={`mt-4 flex w-full items-center justify-center space-x-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
-                inv.isLegit
-                  ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-md shadow-emerald-500/15'
-                  : 'bg-rose-600 text-white hover:bg-rose-500 shadow-md shadow-rose-600/20'
-              }`}
-            >
-              {isProcessing && selectedInvoice?.id === inv.id ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Zap className="h-3.5 w-3.5" />
-                  <span>Test Agent Settlement</span>
-                </>
-              )}
-            </button>
+            <div className="mt-4 pt-3 border-t border-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => handleProcessInvoice(inv)}
+                disabled={isProcessing}
+                className="flex w-full items-center justify-center space-x-1.5 rounded-lg bg-zinc-800 py-2 text-xs font-bold text-zinc-200 hover:bg-emerald-500 hover:text-black transition-all group-hover:bg-emerald-500 group-hover:text-black shadow-md cursor-pointer"
+              >
+                <span>Trigger Wallet Settlement</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Result feedback */}
+      {/* Execution Feedback Banner */}
       {resultLog && (
         <div
-          className={`mt-5 rounded-xl border p-4 text-xs font-mono transition-all ${
-            resultLog.startsWith('APPROVED')
-              ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300'
-              : 'border-rose-500/40 bg-rose-950/20 text-rose-300'
+          className={`mt-5 rounded-xl border p-3.5 text-xs font-mono animate-in fade-in duration-200 ${
+            resultLog.type === 'success'
+              ? 'border-emerald-500/40 bg-emerald-950/30 text-emerald-300'
+              : resultLog.type === 'warning'
+              ? 'border-amber-500/40 bg-amber-950/30 text-amber-300'
+              : 'border-rose-500/40 bg-rose-950/30 text-rose-300'
           }`}
         >
-          <div className="flex items-center space-x-2 font-bold">
-            {resultLog.startsWith('APPROVED') ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-            ) : (
-              <ShieldAlert className="h-4 w-4 text-rose-400" />
-            )}
-            <span>On-Chain Settlement Result</span>
-          </div>
-          <p className="mt-1">{resultLog}</p>
+          {resultLog.text}
         </div>
       )}
+
+      {/* Wallet Confirm Modal */}
+      <WalletConfirmModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+        request={pendingRequest}
+        accountName={activeAccountName}
+        onConfirm={handleConfirmWallet}
+        onCancel={handleCancelWallet}
+      />
     </div>
   );
 };
-

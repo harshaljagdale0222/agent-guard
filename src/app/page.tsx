@@ -391,7 +391,11 @@ export default function Home() {
               emergencyFrozen={policy.emergencyFrozen}
               allowedContracts={policy.allowedContracts}
             />
-            <InvoiceDropzone policy={policy} onExecuteSettlement={handleExecuteSimulation} />
+            <InvoiceDropzone
+              policy={policy}
+              onExecuteSettlement={handleExecuteSimulation}
+              activeAccountName={isWalletConnected ? activeAccountName : 'harshal0296.testnet'}
+            />
             <AgentList
               agents={agents}
               onToggleAgentStatus={handleToggleAgentStatus}
@@ -405,7 +409,11 @@ export default function Home() {
         {/* Tab 2: B2B Invoicing */}
         {activeTab === 'invoicing' && (
           <div className="space-y-6">
-            <InvoiceDropzone policy={policy} onExecuteSettlement={handleExecuteSimulation} />
+            <InvoiceDropzone
+              policy={policy}
+              onExecuteSettlement={handleExecuteSimulation}
+              activeAccountName={isWalletConnected ? activeAccountName : 'harshal0296.testnet'}
+            />
             <ActivityLog activities={activities} />
           </div>
         )}
@@ -452,6 +460,7 @@ export default function Home() {
         policy={policy}
         agents={agents}
         onExecuteSimulation={handleExecuteSimulation}
+        activeAccountName={isWalletConnected ? activeAccountName : 'harshal0296.testnet'}
       />
 
       {/* Threat Radar Modal */}
