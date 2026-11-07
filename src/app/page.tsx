@@ -12,6 +12,7 @@ import { LiveOnChainInspector } from '@/components/LiveOnChainInspector';
 import { InvoiceDropzone } from '@/components/InvoiceDropzone';
 import { TelegramAlertConfig } from '@/components/TelegramAlertConfig';
 import { ThreatRadarModal } from '@/components/ThreatRadarModal';
+import { TreasuryModal } from '@/components/TreasuryModal';
 import {
   initialAgents,
   initialPolicy,
@@ -42,9 +43,19 @@ export default function Home() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isThreatRadarOpen, setIsThreatRadarOpen] = useState(false);
+  const [isTreasuryOpen, setIsTreasuryOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     'network' | 'invoicing' | 'telegram' | 'onchain' | 'agents' | 'policy' | 'audit'
   >('network');
+
+  const scrollToTabs = () => {
+    setTimeout(() => {
+      const el = document.getElementById('tab-navigation-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+  };
 
   // Listen for dApp redirect authorization query params from Meteor or MyNearWallet
   React.useEffect(() => {
@@ -269,10 +280,23 @@ export default function Home() {
         </div>
 
         {/* Executive Metrics Overview */}
-        <StatsOverview metrics={metrics} emergencyFrozen={policy.emergencyFrozen} />
+        <StatsOverview
+          metrics={metrics}
+          emergencyFrozen={policy.emergencyFrozen}
+          onClickTreasury={() => setIsTreasuryOpen(true)}
+          onClickAgents={() => {
+            setActiveTab('agents');
+            scrollToTabs();
+          }}
+          onClickDailySpend={() => {
+            setActiveTab('policy');
+            scrollToTabs();
+          }}
+          onClickPolicyShield={() => setIsThreatRadarOpen(true)}
+        />
 
         {/* Tab Navigation with Vibrant Active Indicators */}
-        <div className="border-b border-zinc-800">
+        <div id="tab-navigation-section" className="border-b border-zinc-800 scroll-mt-6">
           <nav className="flex space-x-2 sm:space-x-6 overflow-x-auto pb-1">
             <button
               onClick={() => setActiveTab('network')}
@@ -434,6 +458,18 @@ export default function Home() {
       <ThreatRadarModal
         isOpen={isThreatRadarOpen}
         onClose={() => setIsThreatRadarOpen(false)}
+      />
+
+      {/* Treasury Vault Breakdown Modal */}
+      <TreasuryModal
+        isOpen={isTreasuryOpen}
+        onClose={() => setIsTreasuryOpen(false)}
+        metrics={metrics}
+        activeAccount={isWalletConnected ? activeAccountName : null}
+        onNavigateToInvoicing={() => {
+          setActiveTab('invoicing');
+          scrollToTabs();
+        }}
       />
 
       {/* High-End Minimalist Footer */}
