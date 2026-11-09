@@ -31,8 +31,8 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [pendingSimRequest, setPendingSimRequest] = useState<WalletTransactionRequest | null>(null);
 
-  // Custom interactive test state
-  const [customAmount, setCustomAmount] = useState<number>(1.5);
+  // Custom interactive test state (use string so no default 0 appears when cleared)
+  const [customAmount, setCustomAmount] = useState<string>('1.5');
   const [customTarget, setCustomTarget] = useState<string>('wrap.testnet');
 
   if (!isOpen) return null;
@@ -40,7 +40,8 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
   // Run Custom Interactive Test
   const handleRunCustomTest = () => {
     setActiveScenario('CUSTOM');
-    const amount = Number(customAmount) || 0;
+    const parsed = parseFloat(customAmount);
+    const amount = isNaN(parsed) ? 0 : parsed;
     const target = customTarget.trim();
 
     // Evaluate against real policy engine
@@ -215,12 +216,17 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
                 Amount (NEAR):
               </label>
               <input
-                type="number"
-                step="0.1"
-                min="0.1"
+                type="text"
+                inputMode="decimal"
                 value={customAmount}
-                onChange={(e) => setCustomAmount(parseFloat(e.target.value) || 0)}
-                placeholder="e.g. 1.5"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Allow empty string and valid positive decimals (no forced 0)
+                  if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                    setCustomAmount(val);
+                  }
+                }}
+                placeholder="Type amount (e.g. 1.5)"
                 className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-mono font-bold text-white focus:border-emerald-500 focus:outline-none"
               />
             </div>
@@ -231,35 +237,35 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
             <span className="text-[10px] text-zinc-500 uppercase font-bold">Quick Amounts:</span>
             <button
               type="button"
-              onClick={() => { setCustomAmount(0.75); setCustomTarget('wrap.testnet'); }}
+              onClick={() => { setCustomAmount('0.75'); setCustomTarget('wrap.testnet'); }}
               className="rounded-lg bg-zinc-800 px-2 py-1 text-[11px] font-mono text-emerald-400 hover:bg-zinc-700 border border-zinc-700"
             >
               0.75 N (Safe ✓)
             </button>
             <button
               type="button"
-              onClick={() => { setCustomAmount(2.0); setCustomTarget('wrap.testnet'); }}
+              onClick={() => { setCustomAmount('1.5'); setCustomTarget('wrap.testnet'); }}
               className="rounded-lg bg-zinc-800 px-2 py-1 text-[11px] font-mono text-emerald-400 hover:bg-zinc-700 border border-zinc-700"
             >
-              2.0 N (Safe ✓)
+              1.5 N (Safe ✓)
             </button>
             <button
               type="button"
-              onClick={() => { setCustomAmount(policy.singleTxCapNear); setCustomTarget('wrap.testnet'); }}
+              onClick={() => { setCustomAmount(policy.singleTxCapNear.toString()); setCustomTarget('wrap.testnet'); }}
               className="rounded-lg bg-zinc-800 px-2 py-1 text-[11px] font-mono text-amber-300 hover:bg-zinc-700 border border-zinc-700"
             >
               {policy.singleTxCapNear} N (At Limit)
             </button>
             <button
               type="button"
-              onClick={() => { setCustomAmount(5.0); setCustomTarget('wrap.testnet'); }}
+              onClick={() => { setCustomAmount('5.0'); setCustomTarget('wrap.testnet'); }}
               className="rounded-lg bg-rose-950/40 px-2 py-1 text-[11px] font-mono text-rose-300 hover:bg-rose-900/60 border border-rose-500/40"
             >
               5.0 N (Exceeds Limit 🚨)
             </button>
             <button
               type="button"
-              onClick={() => { setCustomAmount(20.0); setCustomTarget('attacker.near'); }}
+              onClick={() => { setCustomAmount('20.0'); setCustomTarget('attacker.near'); }}
               className="rounded-lg bg-rose-950/60 px-2 py-1 text-[11px] font-mono text-rose-400 font-bold hover:bg-rose-900/80 border border-rose-500/60"
             >
               20.0 N (Attack Drain 🚨)
@@ -267,25 +273,39 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({
           </div>
 
           {/* Test Button */}
-          <button
-            type="button"
-            onClick={handleRunCustomTest}
-            disabled={isRunning || customAmount <= 0}
-            className={`flex w-full items-center justify-center space-x-2 rounded-xl py-3 text-xs font-bold transition-all shadow-lg cursor-pointer ${
-              customAmount > policy.singleTxCapNear || !policy.allowedContracts.includes(customTarget)
-                ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-950/50'
-                : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black shadow-emerald-500/25'
-            }`}
-          >
-            <span>
-              {customAmount > policy.singleTxCapNear
-                ? `Test Over-Limit Transfer (${customAmount} N > ${policy.singleTxCapNear} N) → Trigger Interception`
-                : !policy.allowedContracts.includes(customTarget)
-                ? `Test Unlisted Transfer to '${customTarget}' → Trigger Block`
-                : `Test Safe Autonomous Transfer (${customAmount} NEAR) → Open Wallet Confirm`}
-            </span>
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          {(() => {
+            const numericAmt = parseFloat(customAmount) || 0;
+            const hasAmount = customAmount.trim() !== '' && numericAmt > 0;
+            const isOverLimit = numericAmt > policy.singleTxCapNear;
+            const isUnlisted = !policy.allowedContracts.includes(customTarget);
+            const isInterception = isOverLimit || isUnlisted;
+
+            return (
+              <button
+                type="button"
+                onClick={handleRunCustomTest}
+                disabled={isRunning || !hasAmount}
+                className={`flex w-full items-center justify-center space-x-2 rounded-xl py-3 text-xs font-bold transition-all shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
+                  !hasAmount
+                    ? 'bg-zinc-800 text-zinc-500 border border-zinc-700'
+                    : isInterception
+                    ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-950/50'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black shadow-emerald-500/25'
+                }`}
+              >
+                <span>
+                  {!hasAmount
+                    ? 'Type a NEAR amount above to test'
+                    : isOverLimit
+                    ? `Test Over-Limit Transfer (${numericAmt} N > ${policy.singleTxCapNear} N) → Trigger Interception`
+                    : isUnlisted
+                    ? `Test Unlisted Transfer to '${customTarget}' → Trigger Block`
+                    : `Test Safe Autonomous Transfer (${numericAmt} NEAR) → Open Wallet Confirm`}
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            );
+          })()}
         </div>
 
         {/* Live Execution Console */}
