@@ -22,7 +22,7 @@ export const AgentList: React.FC<AgentListProps> = ({
   const [newAgentAllowance, setNewAgentAllowance] = useState('5.0');
   const [selectedContracts, setSelectedContracts] = useState<string[]>([
     'intents.near',
-    'cloud-billing.testnet',
+    'wrap.testnet',
   ]);
 
   const handleCreateAgent = (e: React.FormEvent) => {

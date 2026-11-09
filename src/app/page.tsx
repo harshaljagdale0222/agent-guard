@@ -167,7 +167,7 @@ export default function Home() {
         status: 'active',
         dailyAllowanceNear: k.allowanceNear || 10.0,
         spentTodayNear: 0,
-        allowedContracts: k.receiverId ? [k.receiverId] : ['cloud-billing.testnet'],
+        allowedContracts: k.receiverId ? [k.receiverId] : ['wrap.testnet'],
         totalExecutions: k.nonce,
         lastActive: 'Verified on-chain',
       }));
