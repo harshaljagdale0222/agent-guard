@@ -52,7 +52,7 @@ export const WalletConfirmModal: React.FC<WalletConfirmModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 backdrop-blur-lg animate-in fade-in duration-150">
       <div className="relative w-full max-w-md rounded-2xl border border-zinc-700 bg-gradient-to-b from-zinc-900 via-[#0d0f12] to-[#07080a] p-6 shadow-2xl shadow-black/80">
         {/* Glow */}
         <div
@@ -198,3 +198,4 @@ export const WalletConfirmModal: React.FC<WalletConfirmModalProps> = ({
     </div>
   );
 };
+
