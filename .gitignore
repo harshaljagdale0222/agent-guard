@@ -40,6 +40,10 @@ yarn-error.log*
 target/
 contracts/target/
 
+# media
+*.mp4
+*.wav
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
